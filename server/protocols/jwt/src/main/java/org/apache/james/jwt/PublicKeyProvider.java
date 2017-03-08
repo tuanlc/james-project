@@ -16,41 +16,29 @@
  * specific language governing permissions and limitations      *
  * under the License.                                           *
  ****************************************************************/
-package org.apache.james.jmap.crypto;
+package org.apache.james.jwt;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.security.PublicKey;
-import java.util.Optional;
 
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.util.io.pem.PemReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.inject.Inject;
 
-public class PublicKeyReader {
+import com.google.common.annotations.VisibleForTesting;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PublicKeyReader.class);
+public class PublicKeyProvider {
 
-    Optional<PublicKey> fromPEM(Optional<String> pemKey) {
+    private final JwtConfiguration jwtConfiguration;
+    private final PublicKeyReader reader;
 
-        return pemKey
-                .map(k -> new PEMParser(new PemReader(new StringReader(k))))
-                .flatMap(this::publicKeyFrom);
+    @Inject
+    @VisibleForTesting
+    PublicKeyProvider(JwtConfiguration jwtConfiguration, PublicKeyReader reader) {
+        this.jwtConfiguration = jwtConfiguration;
+        this.reader = reader;
     }
 
-    private Optional<PublicKey> publicKeyFrom(PEMParser reader) {
-        try {
-            Object readPEM = reader.readObject();
-            if (readPEM instanceof SubjectPublicKeyInfo) {
-                return Optional.of(new JcaPEMKeyConverter().getPublicKey((SubjectPublicKeyInfo) readPEM));
-            }
-            return Optional.empty();
-        } catch (IOException e) {
-            LOGGER.warn("Error when reading the PEM file", e);
-            return Optional.empty();
-        }
+    public PublicKey get() throws MissingOrInvalidKeyException {
+        return reader.fromPEM(jwtConfiguration.getJwtPublicKeyPem())
+                .orElseThrow(MissingOrInvalidKeyException::new);
     }
+
 }
