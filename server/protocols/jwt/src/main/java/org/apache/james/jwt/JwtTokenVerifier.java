@@ -54,6 +54,14 @@ public class JwtTokenVerifier {
                 .getSubject();
     }
 
+    public void hasAttribute(String attributeName, Object expectedValue, String token) throws JwtException {
+        Jwts
+            .parser()
+            .require(attributeName, expectedValue)
+            .setSigningKey(pubKeyProvider.get())
+            .parseClaimsJws(token);
+    }
+
     private Jws<Claims> parseToken(String token) throws JwtException {
         return Jwts
                 .parser()
