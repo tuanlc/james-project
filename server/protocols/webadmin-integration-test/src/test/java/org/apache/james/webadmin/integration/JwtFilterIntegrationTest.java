@@ -20,7 +20,6 @@
 package org.apache.james.webadmin.integration;
 
 import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.when;
 import static com.jayway.restassured.config.EncoderConfig.encoderConfig;
 import static com.jayway.restassured.config.RestAssuredConfig.newConfig;
 import static org.apache.james.webadmin.Constants.SEPARATOR;
@@ -105,9 +104,22 @@ public class JwtFilterIntegrationTest {
     }
 
     @Test
-    public void jwtShouldRejectNonValidRequests() throws Exception {
+    public void jwtShouldRejectNonAdminRequests() throws Exception {
         given()
             .header(new Header("Authorization", "Bearer " + VALID_TOKEN_ADMIN_FALSE))
+        .when()
+            .put(SPECIFIC_DOMAIN)
+        .then()
+            .statusCode(401);
+
+        assertThat(guiceJamesServer.serverProbe().listDomains())
+            .doesNotContain(DOMAIN);
+    }
+
+    @Test
+    public void jwtShouldRejectInvalidRequests() throws Exception {
+        given()
+            .header(new Header("Authorization", "Bearer invalid"))
         .when()
             .put(SPECIFIC_DOMAIN)
         .then()

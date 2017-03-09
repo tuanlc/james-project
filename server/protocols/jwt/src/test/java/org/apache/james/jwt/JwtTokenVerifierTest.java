@@ -19,7 +19,6 @@
 package org.apache.james.jwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.security.Security;
 import java.util.Optional;
@@ -30,10 +29,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import io.jsonwebtoken.ClaimJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureException;
 
 public class JwtTokenVerifierTest {
 
@@ -89,39 +84,35 @@ public class JwtTokenVerifierTest {
     }
 
     @Test
-    public void shouldThrowOnMismatchingSigningKey() {
+    public void shouldReturnFalseOnMismatchingSigningKey() {
         String invalidToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.Pd6t82" +
                 "tPL3EZdkeYxw_DV2KimE1U2FvuLHmfR_mimJ5US3JFU4J2Gd94O7rwpSTGN1B9h-_lsTebo4ua4xHsTtmczZ9xa8a_kWKaSkqFjNFa" +
                 "Fp6zcoD6ivCu03SlRqsQzSRHXo6TKbnqOt9D6Y2rNa3C4igSwoS0jUE4BgpXbc0";
 
-        assertThatThrownBy(() -> sut.verify(invalidToken))
-            .isInstanceOf(SignatureException.class);
+        assertThat(sut.verify(invalidToken)).isFalse();
     }
 
     @Test
-    public void verifyShouldThrowWhenSubjectIsNull() {
+    public void verifyShouldReturnFalseWhenSubjectIsNull() {
         String tokenWithNullSubject = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOm51bGwsIm5hbWUiOiJKb2huIERvZSJ9.EB" +
                 "_1grWDy_kFelXs3AQeiP13ay4eG_134dWB9XPRSeWsuPs8Mz2UY-VHDxLGD-fAqv-xKXr4QFEnS7iZkdpe0tPLNSwIjqeqkC6KqQln" +
                 "oC1okqWVWBDOcf7Acp1Jzp_cFTUhL5LkHvZDsyCdq5T9OOVVkzO4A9RrzIUsTrYPtRCBuYJ3ggR33cKpw191PulPGNH70rZqpUfDXe" +
                 "VPY3q15vWzZH9O9IJzB2KdHRMPxl2luRjzDbh4DLp56NhZuLX_2a9UAlmbV8MQX4Z_04ybhAYrcBfxR3MgJyr0jlxSibqSbXrkXuo-" +
                 "PyybfZCIhK_qXUlO5OS6sO7AQhKZO9p0MQ";
 
-        assertThatThrownBy(() -> sut.verify(tokenWithNullSubject))
-            .isInstanceOf(MalformedJwtException.class)
-            .hasMessage("'subject' field in token is mandatory");
+        assertThat(sut.verify(tokenWithNullSubject)).isFalse();
     }
     
     @Test
-    public void verifyShouldThrowWhenEmptySubject() {
+    public void verifyShouldReturnFalseWhenEmptySubject() {
         String tokenWithEmptySubject = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIiLCJuYW1lIjoiSm9obiBEb2UifQ.UdY" +
                 "s2PPzFCegUYspoDCnlJR_bJm8_z1InOv4v3tq8SJETQUarOXlhb_n6y6ujVvmJiSx9dI24Hc3Czi3RGUOXbnBDj1WPfd0aVSiUSqZr" +
                 "MCHBt5vjCYqAseDaP3w4aiiFb6EV3tteJFeBLZx8XlKPYxlzRLLUADDyDSQvrFBBPxfsvCETZovKdo9ofIN64o-yx23ss63yE6oIOd" +
                 "zJZ1Id40KSR2d7l3kIQJPLKUWJDnro5RAh4DOGOWNSq0JSbMhk7Zn3cXIBUpv3R8p79tui1UQpzwHMC0e6OSuWEDNQHtq-Cz85u8GG" +
                 "sUSbogmgObA_BimNtUq_Q1p0SGtIYBXmQ";
 
-        assertThatThrownBy(() -> sut.verify(tokenWithEmptySubject))
-            .isInstanceOf(MalformedJwtException.class)
-            .hasMessage("'subject' field in token is mandatory");
+
+        assertThat(sut.verify(tokenWithEmptySubject)).isFalse();
     }
 
     @Test
@@ -131,7 +122,9 @@ public class JwtTokenVerifierTest {
 
     @Test
     public void hasAttributeShouldNotThrowIfClaimValid() throws Exception {
-        sut.hasAttribute("admin", true, VALID_TOKEN_ADMIN_TRUE);
+        boolean authorized = sut.hasAttribute("admin", true, VALID_TOKEN_ADMIN_TRUE);
+
+        assertThat(authorized).isTrue();
     }
 
     @Test
@@ -141,9 +134,9 @@ public class JwtTokenVerifierTest {
 
     @Test
     public void hasAttributeShouldThrowIfClaimInvalid() throws Exception {
-        expectedException.expect(ClaimJwtException.class);
+        boolean authorized = sut.hasAttribute("admin", true, VALID_TOKEN_ADMIN_FALSE);
 
-        sut.hasAttribute("admin", true, VALID_TOKEN_ADMIN_FALSE);
+        assertThat(authorized).isFalse();
     }
 
 }

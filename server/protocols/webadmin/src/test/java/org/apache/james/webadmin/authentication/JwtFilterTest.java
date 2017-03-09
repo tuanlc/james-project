@@ -19,7 +19,6 @@
 
 package org.apache.james.webadmin.authentication;
 
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +33,6 @@ import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.ImmutableSet;
 
-import io.jsonwebtoken.JwtException;
 import spark.HaltException;
 import spark.Request;
 import spark.Response;
@@ -44,7 +42,6 @@ public class JwtFilterTest {
     public static final Matcher<HaltException> STATUS_CODE_MATCHER_401 = new BaseMatcher<HaltException>() {
         @Override
         public boolean matches(Object o) {
-
             if (o instanceof HaltException) {
                 HaltException haltException = (HaltException) o;
                 return haltException.statusCode() == 401;
@@ -107,8 +104,7 @@ public class JwtFilterTest {
         Request request = mock(Request.class);
         when(request.headers(JwtFilter.AUTHORIZATION_HEADER_NAME)).thenReturn("Bearer value");
         when(jwtTokenVerifier.verify("value")).thenReturn(true);
-        doThrow(JwtException.class).when(jwtTokenVerifier)
-            .hasAttribute("admin", true, "value");
+        when(jwtTokenVerifier.hasAttribute("admin", true, "value")).thenReturn(false);
 
         expectedException.expect(HaltException.class);
         expectedException.expect(STATUS_CODE_MATCHER_401);
@@ -121,6 +117,7 @@ public class JwtFilterTest {
         Request request = mock(Request.class);
         when(request.headers(JwtFilter.AUTHORIZATION_HEADER_NAME)).thenReturn("Bearer value");
         when(jwtTokenVerifier.verify("value")).thenReturn(true);
+        when(jwtTokenVerifier.hasAttribute("admin", true, "value")).thenReturn(true);
 
         jwtFilter.handle(request, mock(Response.class));
     }

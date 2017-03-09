@@ -27,7 +27,6 @@ import javax.inject.Inject;
 
 import org.apache.james.jwt.JwtTokenVerifier;
 
-import io.jsonwebtoken.JwtException;
 import spark.Request;
 import spark.Response;
 
@@ -53,22 +52,20 @@ public class JwtFilter implements AuthenticationFilter {
         checkIsAdmin(bearer);
     }
 
-    private void checkHeaderPresent(Optional<String> bearerHeader) {
-        if (!bearerHeader.isPresent()) {
+    private void checkHeaderPresent(Optional<String> bearer) {
+        if (!bearer.isPresent()) {
             halt(401, "No Bearer header.");
         }
     }
 
-    private void checkValidSignature(Optional<String> bearerHeader) {
-        if (!jwtTokenVerifier.verify(bearerHeader.get())) {
+    private void checkValidSignature(Optional<String> bearer) {
+        if (!jwtTokenVerifier.verify(bearer.get())) {
             halt(401, "Invalid Bearer header.");
         }
     }
 
-    private void checkIsAdmin(Optional<String> bearerHeader) {
-        try {
-            jwtTokenVerifier.hasAttribute("admin", true, bearerHeader.get());
-        } catch (JwtException e) {
+    private void checkIsAdmin(Optional<String> bearer) {
+        if (!jwtTokenVerifier.hasAttribute("admin", true, bearer.get())) {
             halt(401, "Non authorized user.");
         }
     }
