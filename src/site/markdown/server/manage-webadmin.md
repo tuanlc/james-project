@@ -2711,7 +2711,7 @@ Here are the following actions available on the 'Deleted Messages Vault'
  - [Restore Deleted Messages](#Restore_deleted_messages)
  - [Export Deleted Messages](#Export_deleted_messages)
  - [Purge Deleted Messages](#Purge_deleted_messages)
- - [Permanently remove Deleted Message](#Permanently_remove_deleted_message) 
+ - [Permanently remove Deleted Message](#Permanently_remove_deleted_message)
 
  Note that the 'Deleted Messages Vault' feature is only supported on top of Cassandra-Guice.
 
@@ -2769,7 +2769,7 @@ The requested Json body is made from list of criterion objects which have follow
 {
   "fieldName": "supportedFieldName",
   "operator": "supportedOperator",
-  "testedValue": "plain string represents for the matching value of corresponding field"
+  "value": "A plain string represents for the matching value of the corresponding field"
 }
 ```
 Deleted Messages which are matched with **all** criterions in the query body will be restored. Here are list of supported fieldName for the restoring:
@@ -2905,7 +2905,7 @@ Response code:
 
 You may want to call this endpoint on a regular basis.
 
-### Permanently remove Deleted Message
+### Permanently Remove Deleted Message
 
 Delete a Deleted Message with MessageId
 
